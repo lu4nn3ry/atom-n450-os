@@ -3,7 +3,7 @@ param(
     [string]$Drive = "E:"
 )
 
-$apkovlSource = Join-Path $PSScriptRoot "itautec-w7020.apkovl.tar.gz"
+$apkovlSource = Join-Path $PSScriptRoot "localhost.apkovl.tar.gz"
 
 if (-not (Test-Path $apkovlSource)) {
     Write-Host "[ERRO] Arquivo itautec-w7020.apkovl.tar.gz nao encontrado!" -ForegroundColor Red
@@ -14,8 +14,10 @@ $destDrive = "$($Drive.TrimEnd('\'))\"
 
 Write-Host "[INJECT] Injetando configuracao no pendrive $destDrive..." -ForegroundColor Cyan
 
-Copy-Item -Path $apkovlSource -Destination "$($destDrive)itautec-w7020.apkovl.tar.gz" -Force
+# Only ONE *.apkovl.tar.gz may exist on the root, or Alpine ignores all of them
+Remove-Item "$($destDrive)*.apkovl.tar.gz" -Force -ErrorAction SilentlyContinue
 Copy-Item -Path $apkovlSource -Destination "$($destDrive)localhost.apkovl.tar.gz" -Force
+Copy-Item -Path (Join-Path $PSScriptRoot "setup.generated.sh") -Destination "$($destDrive)setup.sh" -Force
 
 # Ajustar syslinux.cfg se existir para carregar o apkovl
 $syslinuxCfg = "$($destDrive)boot\syslinux\syslinux.cfg"
