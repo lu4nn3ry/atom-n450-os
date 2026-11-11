@@ -1,3 +1,4 @@
+# Build artifacts
 build/
 bin/
 isodir/
@@ -6,3 +7,10 @@ isodir/
 *.iso
 *.d
 .DS_Store
+
+# Credentials and Local Environment
+.env
+*.env
+*.apkovl.tar.gz
+live_usb/wpa_supplicant.conf
+live_usb/itautec-w7020.apkovl.tar.gz
