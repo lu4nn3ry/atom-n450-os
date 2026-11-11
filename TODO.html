@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intel Atom N450 OS - Roadmap & TODO Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #111827;
+            --card-border: #1f2937;
+            --accent-cyan: #06b6d4;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-purple: #8b5cf6;
+            --text-main: #f3f4f6;
+            --text-dim: #9ca3af;
+            --item-bg: #1e293b;
+            --item-hover: #24344d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 2rem 1rem;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+            border: 1px solid #312e81;
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .badge-chip {
+            display: inline-block;
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(6, 182, 212, 0.4);
+            padding: 0.3rem 0.8rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #ffffff, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 1.05rem;
+            margin-bottom: 1.5rem;
+            max-width: 800px;
+        }
+
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .spec-card {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid #1e293b;
+            padding: 1rem;
+            border-radius: 10px;
+        }
+
+        .spec-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            font-weight: 600;
+        }
+
+        .spec-val {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #67e8f9;
+            margin-top: 0.2rem;
+        }
+
+        /* Progress Card */
+        .progress-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+
+        .progress-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .progress-counter {
+            font-size: 1rem;
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
+        .progress-track {
+            height: 12px;
+            background: #1f2937;
+            border-radius: 9999px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #06b6d4, #3b82f6);
+            transition: width 0.4s ease-in-out;
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.6);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 280px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            color: white;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .btn-reset {
+            background: #1e293b;
+            color: #f87171;
+            border: 1px solid #334155;
+            padding: 0.8rem 1.4rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-reset:hover {
+            background: #2d1e2f;
+            border-color: #ef4444;
+        }
+
+        /* Phase Cards */
+        .phase-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .phase-header {
+            padding: 1.2rem 1.5rem;
+            background: #162032;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .phase-title-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .phase-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--accent-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.9rem;
+        }
+
+        .phase-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .phase-stats {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            font-weight: 500;
+        }
+
+        .task-list {
+            padding: 1rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .task-item {
+            background: var(--item-bg);
+            border: 1px solid #2d3b55;
+            border-radius: 10px;
+            padding: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .task-item:hover {
+            background: var(--item-hover);
+            border-color: #3b82f6;
+        }
+
+        .task-item.completed {
+            opacity: 0.65;
+            background: #131b2e;
+            border-color: #1e293b;
+        }
+
+        .task-item.completed .task-name {
+            text-decoration: line-through;
+            color: #94a3b8;
+        }
+
+        .task-checkbox {
+            margin-top: 0.25rem;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--accent-green);
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-name-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .task-name {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .task-tag {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .tag-core { background: #3b82f633; color: #60a5fa; border: 1px solid #3b82f655; }
+        .tag-memory { background: #8b5cf633; color: #c084fc; border: 1px solid #8b5cf655; }
+        .tag-driver { background: #10b98133; color: #34d399; border: 1px solid #10b98155; }
+        .tag-atom { background: #f59e0b33; color: #fbbf24; border: 1px solid #f59e0b55; }
+        .tag-boot { background: #ec489933; color: #f472b6; border: 1px solid #ec489955; }
+
+        .task-desc {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .task-tech {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #090d16;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            color: #38bdf8;
+            border: 1px solid #1e293b;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem 0;
+            color: #64748b;
+            font-size: 0.9rem;
+            border-top: 1px solid #1f2937;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="badge-chip">x86-64 Bare-Metal Project</span>
+            <h1>Intel Atom N450 Operating System</h1>
+            <p class="subtitle">Roadmap técnico de engenharia de sistemas para criação de um sistema operacional otimizado para o microprocessador Intel Atom N450 (arquitetura Bonnell / Pineview) e chipset Intel NM10 Express.</p>
+            
+            <div class="specs-grid">
+                <div class="spec-card">
+                    <div class="spec-title">Arquitetura</div>
+                    <div class="spec-val">x86-64 (EM64T / SMT)</div>
+                </div>
+                <div class="spec-card">
+                    <div class="spec-title">Pipeline</div>
+                    <div class="spec-val">Dual-Issue In-Order (2-wide)</div>
+                </div>
+                <div class="spec-card">
+                    <div class="spec-title">Cores / Threads</div>
+                    <div class="spec-val">1 Core / 2 Threads (HT)</div>
+                </div>
+                <div class="spec-card">
+                    <div class="spec-title">Frequência / Cache</div>
+                    <div class="spec-val">1.66 GHz / 512 KB L2</div>
+                </div>
+                <div class="spec-card">
+                    <div class="spec-title">Chipset & Gráficos</div>
+                    <div class="spec-val">Intel NM10 + GMA 3150</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Progress bar -->
+        <div class="progress-section">
+            <div class="progress-header">
+                <span class="progress-title">Progresso Geral do Sistema Operacional</span>
+                <span class="progress-counter" id="progress-counter">0 / 0 tarefas (0%)</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="🔍 Filtrar módulos, drivers, registradores...">
+            </div>
+            <button class="btn-reset" onclick="resetProgress()">Reiniciar Progresso</button>
+        </div>
+
+        <!-- Phases Container -->
+        <div id="phases-container">
+            <!-- Phase 1 -->
+            <div class="phase-card">
+                <div class="phase-header">
+                    <div class="phase-title-group">
+                        <div class="phase-number">1</div>
+                        <div class="phase-title">Toolchain & Bootloader (Multiboot2 / Limine)</div>
+                    </div>
+                    <div class="phase-stats" id="stats-phase-1">0/6 concluídos</div>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-id="p1-t1">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Configuração da Toolchain Cross-Compiler x86_64</span>
+                                <span class="task-tag tag-boot">Boot</span>
+                            </div>
+                            <div class="task-desc">Configurar x86_64-elf-gcc ou Clang com flags sem dependência de libc (-ffreestanding -mno-red-zone -mno-mmx -mno-sse -fno-pie).</div>
+                            <div class="task-tech">Flags: -O2 -march=bonnell -mtune=bonnell -mno-red-zone -mcmodel=kernel</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p1-t2">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Cabeçalho Multiboot2 & Linker Script</span>
+                                <span class="task-tag tag-boot">Boot</span>
+                            </div>
+                            <div class="task-desc">Definir o cabeçalho Multiboot2 (magic 0xE85250D6) e criar o linker.ld mapeando o kernel na metade superior (Higher-Half) em 0xFFFFFFFF80000000.</div>
+                            <div class="task-tech">Tags: Information Request (Framebuffer, Memory Map, ACPI RSDP)</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p1-t3">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Ponto de Entrada em Assembly (entry.asm / boot.S)</span>
+                                <span class="task-tag tag-boot">Boot</span>
+                            </div>
+                            <div class="task-desc">Receber o controle em 32-bit Protected Mode, verificar CPUID, habilitar PAE (CR4.PAE = 1), carregar tabelas de página de inicialização e entrar em 64-bit Long Mode (EFER.LME = 1, CR0.PG = 1).</div>
+                            <div class="task-tech">Instruções: lgdt, mov cr4, mov cr3, wrmsr 0xC0000080, mov cr0</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p1-t4">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Console de Depuração Primitivo (VGA / Porta Serial COM1)</span>
+                                <span class="task-tag tag-driver">Driver</span>
+                            </div>
+                            <div class="task-desc">Implementar driver de saída serial RS-232 na porta 0x3F8 (COM1, 115200 8N1) para logs imediatos e saída básica no Framebuffer VGA texto (0xB8000).</div>
+                            <div class="task-tech">I/O Ports: outb(0x3F8, ch) - Compatível com QEMU e netbooks reais</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p1-t5">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Geração de Imagem ISO Bootável (GRUB2 / Limine)</span>
+                                <span class="task-tag tag-boot">Boot</span>
+                            </div>
+                            <div class="task-desc">Script para empacotar o kernel binário em uma imagem ISO inicializável tanto via BIOS Legado quanto via UEFI usando grub-mkrescue ou Limine.</div>
+                            <div class="task-tech">Target: atom_os.iso para boot em pendrive USB ou QEMU (-cdrom)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 2 -->
+            <div class="phase-card">
+                <div class="phase-header">
+                    <div class="phase-title-group">
+                        <div class="phase-number">2</div>
+                        <div class="phase-title">Núcleo da Arquitetura x86-64 & Intel Atom</div>
+                    </div>
+                    <div class="phase-stats" id="stats-phase-2">0/6 concluídos</div>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-id="p2-t1">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">GDT (Global Descriptor Table) de 64 bits & TSS</span>
+                                <span class="task-tag tag-core">Core</span>
+                            </div>
+                            <div class="task-desc">Definir GDT definitiva com segmentos de Kernel Code/Data (DPL 0), User Code/Data (DPL 3) e Task State Segment (TSS) com RSP0 e IST para interrupções seguras.</div>
+                            <div class="task-tech">Estruturas: gdt_entry_t, tss_entry_t, lgdt, ltr</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p2-t2">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">IDT (Interrupt Descriptor Table) & Rotinas ISR/IRQ</span>
+                                <span class="task-tag tag-core">Core</span>
+                            </div>
+                            <div class="task-desc">Configurar 256 vetores de interrupção (0..31 para exceções do processador como #GP, #PF, #DF, e 32..255 para hardware IRQs).</div>
+                            <div class="task-tech">Registradores: lidt, pushaq/popaq, iretq, IST1 (Double Fault)</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p2-t3">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Identificação de CPUID do Intel Atom Bonnell</span>
+                                <span class="task-tag tag-atom">Atom N450</span>
+                            </div>
+                            <div class="task-desc">Detectar Family 6, Model 28 (Pineview N450), checar suporte a EM64T, SSSE3, Hyper-Threading, VMX (não suportado no N450), e topologia de cache L1/L2.</div>
+                            <div class="task-tech">CPUID: EAX=1 (Stepping/Family), EAX=4 (Topologia de Caches)</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p2-t4">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Desativação do 8259 PIC Legado</span>
+                                <span class="task-tag tag-core">Core</span>
+                            </div>
+                            <div class="task-desc">Remapear e mascarar completamente os chips mestres e escravos 8259 PIC para migrar o sistema para o subsistema moderno APIC do Atom.</div>
+                            <div class="task-tech">I/O: outb(0x21, 0xFF); outb(0xA1, 0xFF)</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p2-t5">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Local APIC & I/O APIC (Intel NM10)</span>
+                                <span class="task-tag tag-atom">Atom N450</span>
+                            </div>
+                            <div class="task-desc">Habilitar Local APIC (MSR 0x1B, Spurious Vector 0xF0) e configurar o Intel NM10 I/O APIC em 0xFEC00000 para roteamento dinâmico de IRQs de barramento.</div>
+                            <div class="task-tech">MSR: IA32_APIC_BASE (0x1B), APIC_SPIV (0xF0)</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p2-t6">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Temporizador HPET (High Precision Event Timer) & APIC Timer</span>
+                                <span class="task-tag tag-atom">Atom N450</span>
+                            </div>
+                            <div class="task-desc">O Intel NM10 possui bloco HPET em 0xFED00000. Calibrar o APIC Timer usando o HPET para agendamento preemptivo estável de threads.</div>
+                            <div class="task-tech">Registradores HPET: GCAP_ID (0x00), GEN_CONF (0x10), MAIN_CNT (0xF0)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 3 -->
+            <div class="phase-card">
+                <div class="phase-header">
+                    <div class="phase-title-group">
+                        <div class="phase-number">3</div>
+                        <div class="phase-title">Gerenciamento de Memória (Paging & Heap)</div>
+                    </div>
+                    <div class="phase-stats" id="stats-phase-3">0/5 concluídos</div>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-id="p3-t1">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">PMM: Alocador Físico de Memória (Bitmap / Buddy Allocator)</span>
+                                <span class="task-tag tag-memory">Memória</span>
+                            </div>
+                            <div class="task-desc">Analisar o mapa de memória fornecido pelo Multiboot2 (E820) e implementar alocador de páginas físicas de 4 KB (suportando até os 2 GB DDR2/DDR3 suportados pelo N450).</div>
+                            <div class="task-tech">Algoritmo: Bitmap com busca por first-fit ou Buddy Allocator</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p3-t2">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">VMM: Paginação em 4 Níveis (PML4, PDPT, PD, PT)</span>
+                                <span class="task-tag tag-memory">Memória</span>
+                            </div>
+                            <div class="task-desc">Gerenciador de memória virtual de 64 bits. Mapeamento Higher-Half, isolamento entre páginas de Kernel e Userland, e suporte a páginas grandes de 2 MB (PDE.PS=1).</div>
+                            <div class="task-tech">Flags: PAGE_PRESENT | PAGE_WRITE | PAGE_USER | PAGE_NX</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p3-t3">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Tratamento de Exceções de Page Fault (#PF - Vector 14)</span>
+                                <span class="task-tag tag-memory">Memória</span>
+                            </div>
+                            <div class="task-desc">Tratar faltas de página lendo o endereço causador em CR2 e o Error Code na pilha (detectar violações de permissão vs páginas alocadas sob demanda).</div>
+                            <div class="task-tech">Registrador: mov %cr2, %rax; Análise de bits: P, W/R, U/S, RSVD, I/D</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p3-t4">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Alocador Dinâmico do Kernel (kmalloc / kfree)</span>
+                                <span class="task-tag tag-memory">Memória</span>
+                            </div>
+                            <div class="task-desc">Implementar Slab Allocator ou Dlmalloc para alocações arbitrárias de memória no espaço do kernel com baixa fragmentação.</div>
+                            <div class="task-tech">Estruturas: slab_cache_t, kmalloc(size_t sz), kfree(void* ptr)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 4 -->
+            <div class="phase-card">
+                <div class="phase-header">
+                    <div class="phase-title-group">
+                        <div class="phase-number">4</div>
+                        <div class="phase-title">Multithreading, SMT (Hyper-Threading) & Otimizações Atom</div>
+                    </div>
+                    <div class="phase-stats" id="stats-phase-4">0/5 concluídos</div>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-id="p4-t1">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Context Switching Preemptivo em x86-64</span>
+                                <span class="task-tag tag-core">Core</span>
+                            </div>
+                            <div class="task-desc">Salvar e restaurar registradores de uso geral (RAX-R15), ponteiro de pilha RSP, registradores de controle e ponteiro de instruções RIP acionado pelo APIC Timer.</div>
+                            <div class="task-tech">Estrutura: context_t, switch_to(prev_thread, next_thread)</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p4-t2">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Inicialização SMP/SMT (Hyper-Threading - Thread 1)</span>
+                                <span class="task-tag tag-atom">Atom N450</span>
+                            </div>
+                            <div class="task-desc">O N450 possui 1 Core físico e 2 Threads lógicas. Acordar a segunda thread (Application Processor) via sequência INIT-SIPI-SIPI através do Local APIC ICR.</div>
+                            <div class="task-tech">Sequência: APIC_ICR_INIT -> udelay(10000) -> APIC_ICR_STARTUP</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p4-t3">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Otimização de Pipeline In-Order (Bonnell Microarchitecture)</span>
+                                <span class="task-tag tag-atom">Atom N450</span>
+                            </div>
+                            <div class="task-desc">O Atom N450 executa instruções estritamente em ordem (dual-issue in-order). Otimizar rotinas críticas do kernel evitando hazards de dados e alinhando loops em limites de 16 bytes.</div>
+                            <div class="task-tech">Técnicas: .align 16, desenrolamento de laços, evitar dependências RAW imediatas</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p4-t4">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Primitivas de Sincronização SMT-Safe</span>
+                                <span class="task-tag tag-core">Core</span>
+                            </div>
+                            <div class="task-desc">Implementar Spinlocks com instrução PAUSE (essencial para não travar o pipeline compartilhado entre as duas threads SMT no Atom) e Mutexes.</div>
+                            <div class="task-tech">Assembly: rep; nop (pause), lock cmpxchgq, lock xaddq</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 5 -->
+            <div class="phase-card">
+                <div class="phase-header">
+                    <div class="phase-title-group">
+                        <div class="phase-number">5</div>
+                        <div class="phase-title">Barramento PCI & Drivers do Chipset Intel NM10 Express</div>
+                    </div>
+                    <div class="phase-stats" id="stats-phase-5">0/6 concluídos</div>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-id="p5-t1">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Enumerador de Barramento PCI (PCI Bus Scan)</span>
+                                <span class="task-tag tag-driver">Driver</span>
+                            </div>
+                            <div class="task-desc">Varredura de 256 barramentos x 32 dispositivos x 8 funções via portas 0xCF8 (CONFIG_ADDRESS) e 0xCFC (CONFIG_DATA). Detecção dos dispositivos integrados da Intel (Vendor ID 0x8086).</div>
+                            <div class="task-tech">I/O Ports: 0xCF8 / 0xCFC, BARs (Base Address Registers), IRQ Pin/Line</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p5-t2">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Driver de Armazenamento SATA AHCI (Intel NM10 SATA)</span>
+                                <span class="task-tag tag-driver">Driver</span>
+                            </div>
+                            <div class="task-desc">Controlador SATA AHCI 1.0 integrado no NM10 (Device ID 0x27C0 / 0x27C4). Configurar Command Lists, FIS de recepção e transferências DMA via PRDT.</div>
+                            <div class="task-tech">Registradores AHCI: GHC (Global Host Control), Port Command/Status, PRDT</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p5-t3">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Teclado e Touchpad PS/2 (i8042 LPC Controller)</span>
+                                <span class="task-tag tag-driver">Driver</span>
+                            </div>
+                            <div class="task-desc">Netbooks com N450 utilizam teclado e touchpad integrados conectados ao controlador SuperIO/LPC compatível com i8042 (Portas 0x60 e 0x64, IRQ 1 e IRQ 12).</div>
+                            <div class="task-tech">I/O: Porta 0x60 (Data), 0x64 (Status/Command), Protocolo PS/2 Mouse & ScanCode Set 2</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p5-t4">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Intel GMA 3150 Graphics & Framebuffer Linear</span>
+                                <span class="task-tag tag-driver">Driver</span>
+                            </div>
+                            <div class="task-desc">GPU integrada Intel GMA 3150 (PCI Device 0x8086:0xA001/0xA011). Inicialização em resolução nativa do netbook (1024x600) via VBE/GOP ou MMIO BAR0.</div>
+                            <div class="task-tech">Resolução típica: 1024x600 32bpp, Renderizador de fontes Bitmap e Blitting</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p5-t5">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Rede Ethernet Realtek RTL8101E / RTL8102E / RTL8111</span>
+                                <span class="task-tag tag-driver">Driver</span>
+                            </div>
+                            <div class="task-desc">Placa de rede onboard predominante nos netbooks com NM10. Configurar anéis de descritores de RX/TX e interrupções PCI.</div>
+                            <div class="task-tech">Protocolo: Ethernet II, ARP, IPv4, ICMP Ping</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p5-t6">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Áudio Intel High Definition Audio (HDA / ALC269/272)</span>
+                                <span class="task-tag tag-driver">Driver</span>
+                            </div>
+                            <div class="task-desc">Controlador Intel HDA no barramento PCI (Device ID 0x8086:0x27D8). Configurar CORB (Command Out Ring Buffer) e RIRB (Response In Ring Buffer).</div>
+                            <div class="task-tech">BAR0 MMIO: Registradores HDA, DMA Buffer Descriptors</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 6 -->
+            <div class="phase-card">
+                <div class="phase-header">
+                    <div class="phase-title-group">
+                        <div class="phase-number">6</div>
+                        <div class="phase-title">Sistema de Arquivos, Syscalls & Shell do Usuário</div>
+                    </div>
+                    <div class="phase-stats" id="stats-phase-6">0/4 concluídos</div>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-id="p6-t1">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">VFS (Virtual File System) & Driver FAT32 / Ext2</span>
+                                <span class="task-tag tag-core">Core</span>
+                            </div>
+                            <div class="task-desc">Camada VFS com nós vnode/inode e suporte a leitura de partições MBR com sistema de arquivos FAT32 para leitura de binários e configurações.</div>
+                            <div class="task-tech">APIs: vfs_open(), vfs_read(), vfs_write(), vfs_mount()</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p6-t2">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Instruções SYSCALL / SYSRET Rápidas de 64 bits</span>
+                                <span class="task-tag tag-core">Core</span>
+                            </div>
+                            <div class="task-desc">Configurar os MSRs IA32_STAR (0xC0000081), IA32_LSTAR (0xC0000082) e IA32_FMASK (0xC0000084) para troca instantânea de privilégios entre Ring 3 e Ring 0.</div>
+                            <div class="task-tech">MSRs: LSTAR aponta para syscall_entrypoint, FMASK mascara RFLAGS.IF</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p6-t3">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Carregador de Executáveis ELF64</span>
+                                <span class="task-tag tag-core">Core</span>
+                            </div>
+                            <div class="task-desc">Analisador de cabeçalhos ELF64 (ET_EXEC), mapeamento dos segmentos PT_LOAD na memória virtual da tarefa e salto para o e_entry.</div>
+                            <div class="task-tech">Estruturas: Elf64_Ehdr, Elf64_Phdr, alocação sob demanda</div>
+                        </div>
+                    </div>
+                    <div class="task-item" data-id="p6-t4">
+                        <input type="checkbox" class="task-checkbox">
+                        <div class="task-content">
+                            <div class="task-name-row">
+                                <span class="task-name">Terminal Interativo & Shell Básico (Ring 3)</span>
+                                <span class="task-tag tag-core">Userland</span>
+                            </div>
+                            <div class="task-desc">Processo em espaço de usuário executando comandos básicos do sistema: help, sysinfo, lspci, meminfo, lscpu, cat, reboot.</div>
+                            <div class="task-tech">Binário: /bin/sh compilado em C para Ring 3</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Intel Atom N450 OS Development Roadmap &copy; 2026. Feito para arquitetura Bonnell x86-64 / Intel NM10 Express.</p>
+        </footer>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'atom_n450_os_todo_state_v1';
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                return saved ? JSON.parse(saved) : {};
+            } catch(e) {
+                return {};
+            }
+        }
+
+        function saveState(state) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch(e) {}
+        }
+
+        function updateProgress() {
+            const state = loadState();
+            const allItems = document.querySelectorAll('.task-item');
+            let completedCount = 0;
+
+            allItems.forEach(item => {
+                const id = item.getAttribute('data-id');
+                const checkbox = item.querySelector('.task-checkbox');
+                if (state[id]) {
+                    checkbox.checked = true;
+                    item.classList.add('completed');
+                    completedCount++;
+                } else {
+                    checkbox.checked = false;
+                    item.classList.remove('completed');
+                }
+            });
+
+            const total = allItems.length;
+            const pct = total > 0 ? Math.round((completedCount / total) * 100) : 0;
+
+            document.getElementById('progress-bar').style.width = pct + '%';
+            document.getElementById('progress-counter').textContent = `${completedCount} / ${total} tarefas (${pct}%)`;
+
+            // Update individual phase stats
+            document.querySelectorAll('.phase-card').forEach((card, index) => {
+                const phaseNum = index + 1;
+                const phaseItems = card.querySelectorAll('.task-item');
+                let phaseDone = 0;
+                phaseItems.forEach(it => {
+                    const id = it.getAttribute('data-id');
+                    if (state[id]) phaseDone++;
+                });
+                const statElem = document.getElementById(`stats-phase-${phaseNum}`);
+                if (statElem) {
+                    statElem.textContent = `${phaseDone}/${phaseItems.length} concluídos`;
+                }
+            });
+        }
+
+        // Checkbox change listener
+        document.addEventListener('change', (e) => {
+            if (e.target.classList.contains('task-checkbox')) {
+                const item = e.target.closest('.task-item');
+                const id = item.getAttribute('data-id');
+                const state = loadState();
+                state[id] = e.target.checked;
+                saveState(state);
+                updateProgress();
+            }
+        });
+
+        // Search filter
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('.task-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Reset progress button
+        function resetProgress() {
+            if (confirm('Tem certeza de que deseja resetar todo o progresso do TODO?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                updateProgress();
+            }
+        }
+
+        // Initial setup
+        window.addEventListener('DOMContentLoaded', () => {
+            updateProgress();
+        });
+    </script>
+</body>
+</html>
