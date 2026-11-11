@@ -28,7 +28,7 @@ mkdir -p "$BUILD_DIR/etc/ssh"
 mkdir -p "$BUILD_DIR/etc/apk"
 mkdir -p "$BUILD_DIR/lib/firmware/rtlwifi"
 
-# CRITICAL: Tell Alpine to keep default boot services (modloop, mdev, hwdrivers)!
+# Keep Alpine default boot services
 touch "$BUILD_DIR/etc/.default_boot_services"
 
 # Copy firmware files
@@ -76,7 +76,10 @@ country=BR
 network={
     ssid="$WIFI_SSID"
     psk="$WIFI_PSK"
+    proto=RSN WPA
     key_mgmt=WPA-PSK
+    pairwise=CCMP TKIP
+    group=CCMP TKIP
     priority=1
 }
 EOF
@@ -88,41 +91,43 @@ iface lo inet loopback
 
 auto eth0
 iface eth0 inet dhcp
-
-auto wlan0
-iface wlan0 inet dhcp
-    wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
 EOF
 
 cat << EOF > "$BUILD_DIR/etc/local.d/beacon.start"
 #!/bin/sh
-echo '[AGENT] Subindo modulo rtl8192se e rede...'
 modprobe rtl8192se 2>/dev/null || true
 sleep 1
 
+WLAN_IF=\$(ls /sys/class/net | grep -E '^wl' | head -n 1)
+[ -z "\$WLAN_IF" ] && exit 0
+
 ip link set lo up
-ip link set wlan0 up 2>/dev/null || true
-ip link set eth0 up 2>/dev/null || true
+ip link set "\$WLAN_IF" up
 
 killall wpa_supplicant 2>/dev/null || true
-wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf 2>/dev/null || true
-udhcpc -b -i wlan0 2>/dev/null || true
-udhcpc -b -i eth0 2>/dev/null || true
+sleep 1
+wpa_supplicant -B -i "\$WLAN_IF" -c /etc/wpa_supplicant/wpa_supplicant.conf
 
-/etc/init.d/sshd restart 2>/dev/null || /usr/sbin/sshd 2>/dev/null || true
-
-for i in \$(seq 1 25); do
-    CURRENT_IP=\$(ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n 1)
-    if [ -n "\$CURRENT_IP" ]; then
-        break
-    fi
+for i in \$(seq 1 15); do
+    STATUS=\$(wpa_cli -i "\$WLAN_IF" status 2>/dev/null | grep 'wpa_state=' | cut -d= -f2)
+    [ "\$STATUS" = "COMPLETED" ] && break
     sleep 1
 done
 
-if [ -n "\$CURRENT_IP" ]; then
-    PAYLOAD="{\"from\":\"ITAUTEC-W7020\",\"ip\":\"\$CURRENT_IP\",\"text\":\"Netbook Conectado! IP: \$CURRENT_IP\"}"
-    wget -q --post-data="\$PAYLOAD" "http://$TARGET_HOST_IP:$TARGET_HOST_PORT/msg" -O /dev/null 2>/dev/null || true
+udhcpc -i "\$WLAN_IF" -t 5 -n -q 2>/dev/null || true
+
+IP=\$(ip -4 a show "\$WLAN_IF" | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n 1)
+if [ -z "\$IP" ]; then
+    ip addr add 192.168.0.88/24 dev "\$WLAN_IF" 2>/dev/null || true
+    ip route add default via 192.168.0.1 dev "\$WLAN_IF" 2>/dev/null || true
+    echo "nameserver 1.1.1.1" > /etc/resolv.conf
+    IP="192.168.0.88"
 fi
+
+/etc/init.d/sshd restart 2>/dev/null || /usr/sbin/sshd 2>/dev/null || true
+
+PAYLOAD="{\"from\":\"ITAUTEC-W7020\",\"ip\":\"\$IP\",\"text\":\"Netbook Online na rede LNET! IP: \$IP\"}"
+wget -q --post-data="\$PAYLOAD" "http://$TARGET_HOST_IP:$TARGET_HOST_PORT/msg" -O /dev/null 2>/dev/null || true
 EOF
 chmod 755 "$BUILD_DIR/etc/local.d/beacon.start"
 
@@ -139,4 +144,4 @@ cd "$BUILD_DIR"
 tar --owner=0 --group=0 -czf "$DIR/localhost.apkovl.tar.gz" etc/ lib/
 cp "$DIR/localhost.apkovl.tar.gz" "$DIR/itautec-w7020.apkovl.tar.gz"
 
-echo "Apkovl successfully generated with .default_boot_services and modloop!"
+echo "Apkovl generated with Handshake Wait and Static IP Fallback!"
