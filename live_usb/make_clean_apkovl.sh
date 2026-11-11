@@ -3,6 +3,7 @@ set -e
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$DIR/.."
+FW_DIR="/mnt/d/research_moto_e32/firmware_rtl"
 
 # Load credentials from .env
 if [ -f "$ROOT_DIR/.env" ]; then
@@ -24,6 +25,12 @@ mkdir -p "$BUILD_DIR/etc/runlevels/default"
 mkdir -p "$BUILD_DIR/etc/runlevels/boot"
 mkdir -p "$BUILD_DIR/etc/ssh"
 mkdir -p "$BUILD_DIR/etc/apk"
+mkdir -p "$BUILD_DIR/lib/firmware/rtlwifi"
+
+# Copy firmware files
+if [ -d "$FW_DIR" ]; then
+    cp "$FW_DIR"/* "$BUILD_DIR/lib/firmware/rtlwifi/"
+fi
 
 echo 'localhost' > "$BUILD_DIR/etc/hostname"
 cat << 'EOF' > "$BUILD_DIR/etc/hosts"
@@ -40,6 +47,11 @@ sshd:!19500:0:99999:7:::
 nobody:!19500:0:99999:7:::
 EOF
 chmod 600 "$BUILD_DIR/etc/shadow"
+
+# Modules to auto-load on boot
+cat << 'EOF' > "$BUILD_DIR/etc/modules"
+rtl8192se
+EOF
 
 cat << 'EOF' > "$BUILD_DIR/etc/ssh/sshd_config"
 Port 22
@@ -80,18 +92,22 @@ EOF
 
 cat << EOF > "$BUILD_DIR/etc/local.d/beacon.start"
 #!/bin/sh
-echo '[AGENT] Subindo rede e SSH...'
+echo '[AGENT] Subindo modulo rtl8192se e rede...'
+modprobe rtl8192se 2>/dev/null || true
+sleep 1
+
 ip link set lo up
 ip link set wlan0 up 2>/dev/null || true
 ip link set eth0 up 2>/dev/null || true
 
+killall wpa_supplicant 2>/dev/null || true
 wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf 2>/dev/null || true
 udhcpc -b -i wlan0 2>/dev/null || true
 udhcpc -b -i eth0 2>/dev/null || true
 
-/etc/init.d/sshd start 2>/dev/null || /usr/sbin/sshd 2>/dev/null || true
+/etc/init.d/sshd restart 2>/dev/null || /usr/sbin/sshd 2>/dev/null || true
 
-for i in \$(seq 1 20); do
+for i in \$(seq 1 25); do
     CURRENT_IP=\$(ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n 1)
     if [ -n "\$CURRENT_IP" ]; then
         break
@@ -110,15 +126,8 @@ ln -sf /etc/init.d/local "$BUILD_DIR/etc/runlevels/default/local"
 ln -sf /etc/init.d/sshd "$BUILD_DIR/etc/runlevels/default/sshd"
 ln -sf /etc/init.d/networking "$BUILD_DIR/etc/runlevels/boot/networking"
 
-cat << 'EOF' > "$BUILD_DIR/etc/apk/world"
-alpine-base
-openssh
-wpa_supplicant
-wireless-tools
-EOF
-
 cd "$BUILD_DIR"
-tar --owner=0 --group=0 -czf "$DIR/localhost.apkovl.tar.gz" etc/
+tar --owner=0 --group=0 -czf "$DIR/localhost.apkovl.tar.gz" etc/ lib/
 cp "$DIR/localhost.apkovl.tar.gz" "$DIR/itautec-w7020.apkovl.tar.gz"
 
-echo "Generated clean root-owned localhost.apkovl.tar.gz"
+echo "Apkovl successfully generated with RTL8192SE firmware and modules!"
