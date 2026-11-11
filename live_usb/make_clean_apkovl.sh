@@ -21,11 +21,15 @@ rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR/etc/wpa_supplicant"
 mkdir -p "$BUILD_DIR/etc/network"
 mkdir -p "$BUILD_DIR/etc/local.d"
-mkdir -p "$BUILD_DIR/etc/runlevels/default"
+mkdir -p "$BUILD_DIR/etc/runlevels/sysinit"
 mkdir -p "$BUILD_DIR/etc/runlevels/boot"
+mkdir -p "$BUILD_DIR/etc/runlevels/default"
 mkdir -p "$BUILD_DIR/etc/ssh"
 mkdir -p "$BUILD_DIR/etc/apk"
 mkdir -p "$BUILD_DIR/lib/firmware/rtlwifi"
+
+# CRITICAL: Tell Alpine to keep default boot services (modloop, mdev, hwdrivers)!
+touch "$BUILD_DIR/etc/.default_boot_services"
 
 # Copy firmware files
 if [ -d "$FW_DIR" ]; then
@@ -122,12 +126,17 @@ fi
 EOF
 chmod 755 "$BUILD_DIR/etc/local.d/beacon.start"
 
+# Runlevels
+ln -sf /etc/init.d/modloop "$BUILD_DIR/etc/runlevels/sysinit/modloop"
+ln -sf /etc/init.d/mdev "$BUILD_DIR/etc/runlevels/sysinit/mdev"
+ln -sf /etc/init.d/hwdrivers "$BUILD_DIR/etc/runlevels/sysinit/hwdrivers"
+ln -sf /etc/init.d/modules "$BUILD_DIR/etc/runlevels/boot/modules"
+ln -sf /etc/init.d/networking "$BUILD_DIR/etc/runlevels/boot/networking"
 ln -sf /etc/init.d/local "$BUILD_DIR/etc/runlevels/default/local"
 ln -sf /etc/init.d/sshd "$BUILD_DIR/etc/runlevels/default/sshd"
-ln -sf /etc/init.d/networking "$BUILD_DIR/etc/runlevels/boot/networking"
 
 cd "$BUILD_DIR"
 tar --owner=0 --group=0 -czf "$DIR/localhost.apkovl.tar.gz" etc/ lib/
 cp "$DIR/localhost.apkovl.tar.gz" "$DIR/itautec-w7020.apkovl.tar.gz"
 
-echo "Apkovl successfully generated with RTL8192SE firmware and modules!"
+echo "Apkovl successfully generated with .default_boot_services and modloop!"
